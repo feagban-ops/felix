@@ -28,7 +28,9 @@ export async function POST(request: Request) {
       .eq('id', user.id)
       .single()
 
-    if (!profile?.is_admin) {
+    const profileWithAdmin = profile as { is_admin: boolean } | null
+
+    if (!profileWithAdmin?.is_admin) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 })
     }
 
