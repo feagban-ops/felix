@@ -1,8 +1,9 @@
 import { SupabaseClient } from '@supabase/supabase-js'
+import { Database } from '@/types/database'
 import { rateLimit } from '@/lib/rate-limit'
 
 interface ProposeBottleParams {
-  supabase: SupabaseClient
+  supabase: SupabaseClient<Database>
   userId: string
   brand: string
   name: string
