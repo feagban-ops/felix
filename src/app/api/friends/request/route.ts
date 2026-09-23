@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { rateLimit, getRateLimitIdentifier } from '@/lib/rate-limit'
+import { Database } from '@/types/database'
 
 const friendRequestSchema = z.object({
   friend_id: z.string().uuid(),
@@ -45,11 +46,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Une relation d\'amitié existe déjà' }, { status: 400 })
     }
 
-    const { error } = await supabase.from('friendships').insert({
+    const insertPayload: Database['public']['Tables']['friendships']['Insert'] = {
       user_id: user.id,
       friend_id,
       status: 'pending',
-    })
+    }
+
+    const { error } = await supabase.from('friendships').insert(insertPayload)
 
     if (error) throw error
 
