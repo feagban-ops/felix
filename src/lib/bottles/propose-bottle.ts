@@ -1,9 +1,11 @@
-import { SupabaseClient } from '@supabase/supabase-js'
+import { createServerClient } from '@/lib/supabase/server'
 import { Database } from '@/types/database'
 import { rateLimit } from '@/lib/rate-limit'
 
+type SupabaseClient = ReturnType<typeof createServerClient>
+
 interface ProposeBottleParams {
-  supabase: SupabaseClient<Database>
+  supabase: SupabaseClient
   userId: string
   brand: string
   name: string
