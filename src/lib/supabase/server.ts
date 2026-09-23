@@ -1,9 +1,9 @@
 import { createServerClient as createSupabaseServerClient } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { Database } from '@/types/database'
 
-export const createServerClient = () => {
+export const createServerClient = (): SupabaseClient<Database> => {
   const cookieStore = cookies()
 
   return createSupabaseServerClient<Database>(
@@ -18,15 +18,12 @@ export const createServerClient = () => {
           try {
             cookieStore.set(name, value, options)
           } catch {
-            // Appelé depuis un Server Component : ignoré, le middleware
-            // s'occupe de rafraîchir la session
           }
         },
         remove(name: string, options: any) {
           try {
             cookieStore.set(name, '', options)
           } catch {
-            // Idem
           }
         },
       },
