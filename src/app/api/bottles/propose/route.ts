@@ -39,6 +39,10 @@ export async function POST(request: Request) {
       throw error
     }
 
+    if (!data) {
+      return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    }
+
     return NextResponse.json({
       ...data,
       message: 'Nouvelle bouteille proposée : en attente de validation admin. Tu ne reçois pas encore la carte/XP.',
