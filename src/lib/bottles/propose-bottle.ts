@@ -38,6 +38,7 @@ export async function proposeBottle({
     })
     .select()
     .single()
+    .overrideTypes<Database['public']['Tables']['bottles']['Row']>()
 
   return result
 }
