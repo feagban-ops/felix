@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { signOut } from '@supabase/auth-helpers-nextjs'
 
 export default function ProfileSettingsPage() {
   const [username, setUsername] = useState('')
@@ -64,7 +63,7 @@ export default function ProfileSettingsPage() {
   }
 
   const handleLogout = async () => {
-    await signOut()
+    await supabase.auth.signOut()
     router.push('/login')
   }
 

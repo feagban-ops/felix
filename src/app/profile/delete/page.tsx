@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { signOut } from '@supabase/auth-helpers-nextjs'
 
 export default function ProfileDeletePage() {
   const [confirmation, setConfirmation] = useState('')
@@ -38,7 +37,7 @@ export default function ProfileDeletePage() {
       }
 
       // Sign out
-      await signOut()
+      await supabase.auth.signOut()
       router.push('/')
       router.refresh()
     } catch (error: any) {

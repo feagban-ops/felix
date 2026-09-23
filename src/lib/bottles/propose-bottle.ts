@@ -1,11 +1,9 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { Database } from '@/types/database'
 import { rateLimit } from '@/lib/rate-limit'
 
-type SupabaseClient = ReturnType<typeof createServerClient>
-
 interface ProposeBottleParams {
-  supabase: SupabaseClient
+  supabase: SupabaseClient<Database>
   userId: string
   brand: string
   name: string
@@ -29,7 +27,7 @@ export async function proposeBottle({
     }
   }
 
-  return supabase
+  const result = await supabase
     .from('bottles')
     .insert({
       brand,
@@ -41,4 +39,6 @@ export async function proposeBottle({
     })
     .select()
     .single()
+
+  return result
 }
