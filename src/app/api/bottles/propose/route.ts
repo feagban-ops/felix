@@ -22,8 +22,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { brand, name, rarity_tier, base_xp } = proposeBottleSchema.parse(body)
 
-    // Insert bottle with status='pending' (enforced by RLS)
-    const { data, error } = await proposeBottle({
+    const result = await proposeBottle({
       supabase,
       userId: user.id,
       brand,
@@ -32,19 +31,15 @@ export async function POST(request: Request) {
       baseXp: base_xp,
     })
 
-    if (error) {
-      if (error.message === 'Trop de propositions de bouteilles, réessaie plus tard') {
-        return NextResponse.json({ error: error.message }, { status: 429 })
+    if (result.error) {
+      if (result.error.message === 'Trop de propositions de bouteilles, réessaie plus tard') {
+        return NextResponse.json({ error: result.error.message }, { status: 429 })
       }
-      throw error
-    }
-
-    if (!data) {
-      return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+      throw result.error
     }
 
     return NextResponse.json({
-      ...data,
+      ...result.data,
       message: 'Nouvelle bouteille proposée : en attente de validation admin. Tu ne reçois pas encore la carte/XP.',
     })
   } catch (error: any) {
