@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       p_user_id: user.id,
       p_bottle_id: bottle_id,
       p_venue_id: venue_id,
-      p_outing_id: outing_id || null,
+      p_outing_id: outing_id,
     })
 
     if (error) {
