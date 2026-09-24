@@ -13,7 +13,7 @@ export async function POST(
   { params }: { params: { outingId: string } }
 ) {
   try {
-    const { outingId } = outingIdSchema.parse(params)
+    const outingId = outingIdSchema.parse(params.outingId)
     const supabase = createServerClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -72,7 +72,7 @@ export async function GET(
   { params }: { params: { outingId: string } }
 ) {
   try {
-    const { outingId } = outingIdSchema.parse(params)
+    const outingId = outingIdSchema.parse(params.outingId)
     const supabase = createServerClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -127,7 +127,7 @@ export async function DELETE(
   { params }: { params: { outingId: string } }
 ) {
   try {
-    const { outingId } = outingIdSchema.parse(params)
+    const outingId = outingIdSchema.parse(params.outingId)
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('user_id')
 
