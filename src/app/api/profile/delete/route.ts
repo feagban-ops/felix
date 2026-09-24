@@ -17,9 +17,18 @@ export async function POST() {
     // Delete user data in order (respecting foreign keys)
     await serviceClient.from('purchases').delete().eq('user_id', user.id)
     await serviceClient.from('outing_participants').delete().eq('user_id', user.id)
-    await serviceClient.from('outing_bottles').delete().in('outing_id',
-      serviceClient.from('outings').select('id').eq('owner_id', user.id)
-    )
+
+    const { data: userOutings } = await serviceClient
+      .from('outings')
+      .select('id')
+      .eq('owner_id', user.id)
+
+    const outingIds = (userOutings ?? []).map((o) => o.id)
+
+    if (outingIds.length > 0) {
+      await serviceClient.from('outing_bottles').delete().in('outing_id', outingIds)
+    }
+
     await serviceClient.from('outings').delete().eq('owner_id', user.id)
     await serviceClient.from('cards').delete().eq('user_id', user.id)
     await serviceClient.from('friendships').delete().or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
@@ -27,7 +36,7 @@ export async function POST() {
     await serviceClient.from('profiles').delete().eq('id', user.id)
 
     // Delete auth user
-    await supabase.auth.admin.deleteUser(user.id)
+    await serviceClient.auth.admin.deleteUser(user.id)
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
