@@ -10,8 +10,8 @@ interface PendingPrice {
   venue_id: string
   bottle_id: string
   price: number
-  currency: string
-  submitted_by: string
+  currency: string | null
+  submitted_by: string | null
   updated_at: string
   venues: {
     id: string
@@ -26,7 +26,7 @@ interface PendingPrice {
   profiles: {
     id: string
     username: string
-  }
+  } | null
 }
 
 interface PendingBottle {
@@ -35,13 +35,13 @@ interface PendingBottle {
   name: string
   rarity_tier: string
   base_xp: number
-  submitted_by: string
+  submitted_by: string | null
   suggested_by_ai: boolean
   created_at: string
   profiles: {
     id: string
     username: string
-  }
+  } | null
 }
 
 export default function ModerationPage() {
@@ -273,10 +273,10 @@ export default function ModerationPage() {
 
                     <div className="text-right">
                       <p className="text-2xl font-bold text-purple-400">
-                        {formatCurrency(price.price, price.currency)}
+                        {formatCurrency(price.price, price.currency || 'EUR')}
                       </p>
                       <p className="text-sm text-gray-500">
-                        Soumis par {price.profiles.username || 'Anonyme'}
+                        Soumis par {price.profiles?.username || 'Anonyme'}
                       </p>
                       <p className="text-xs text-gray-600">
                         {new Date(price.updated_at).toLocaleDateString('fr-FR')}
@@ -363,7 +363,7 @@ function BottleModerationCard({
           </h3>
           <p className="text-sm text-gray-500">
             {bottle.suggested_by_ai && '🤖 Suggérée par IA • '}
-            Soumis par {bottle.profiles.username || 'Anonyme'}
+            Soumis par {bottle.profiles?.username || 'Anonyme'}
           </p>
           <p className="text-xs text-gray-600">
             {new Date(bottle.created_at).toLocaleDateString('fr-FR')}
