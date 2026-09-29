@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { stripe } from '@/lib/stripe'
+import { Database } from '@/types/database'
 
 export async function POST(request: Request) {
   try {
@@ -12,19 +13,29 @@ export async function POST(request: Request) {
     }
 
     // Check if user already has an active subscription
-    const { data: existingSubscription } = await supabase
+    const { data: activeSubscription } = await supabase
       .from('subscriptions')
       .select('*')
       .eq('user_id', user.id)
       .eq('status', 'active')
-      .single()
+      .maybeSingle()
+      .overrideTypes<Database['public']['Tables']['subscriptions']['Row'], { merge: false }>()
 
-    if (existingSubscription) {
+    if (activeSubscription) {
       return NextResponse.json({ error: 'Abonnement déjà actif' }, { status: 400 })
     }
 
-    // Get or create Stripe customer
-    let customerId = existingSubscription?.stripe_customer_id
+    // Get or create Stripe customer - reuse an existing customer id from
+    // any previous subscription record (even inactive/cancelled) if present
+    const { data: anySubscription } = await supabase
+      .from('subscriptions')
+      .select('stripe_customer_id')
+      .eq('user_id', user.id)
+      .not('stripe_customer_id', 'is', null)
+      .limit(1)
+      .maybeSingle()
+
+    let customerId = anySubscription?.stripe_customer_id
 
     if (!customerId) {
       const customer = await stripe.customers.create({
