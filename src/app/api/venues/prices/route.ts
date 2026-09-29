@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       .select('*')
       .eq('venue_id', venue_id)
       .eq('bottle_id', bottle_id)
-      .single()
+      .maybeSingle()
 
     if (existing) {
       return NextResponse.json({ error: 'Un prix existe déjà pour cette combinaison' }, { status: 400 })

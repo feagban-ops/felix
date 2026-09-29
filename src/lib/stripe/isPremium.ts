@@ -8,7 +8,7 @@ export async function isPremium(userId: string): Promise<boolean> {
     .select('*')
     .eq('user_id', userId)
     .eq('status', 'active')
-    .single()
+    .maybeSingle()
 
   return !!subscription
 }
@@ -20,7 +20,7 @@ export async function getSubscription(userId: string) {
     .from('subscriptions')
     .select('*')
     .eq('user_id', userId)
-    .single()
+    .maybeSingle()
 
   return subscription
 }

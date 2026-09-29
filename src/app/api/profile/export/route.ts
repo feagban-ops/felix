@@ -12,7 +12,7 @@ export async function GET() {
 
     // Fetch all user data
     const [profile, outings, cards, friendships, subscriptions, purchases] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
+      supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
       supabase.from('outings').select('*').eq('owner_id', user.id),
       supabase.from('cards').select('*').eq('user_id', user.id),
       supabase.from('friendships').select('*').or(`user_id.eq.${user.id},friend_id.eq.${user.id}`),

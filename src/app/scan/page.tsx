@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { Database } from '@/types/database'
 
 interface DetectedBottle {
   id: string
@@ -102,26 +103,28 @@ export default function ScanPage() {
       if (!user) throw new Error('Non connecté')
 
       // Create outing
+      const outingPayload: Database['public']['Tables']['outings']['Insert'] = {
+        owner_id: user.id,
+        venue_id: selectedVenue,
+        photo_url: photo,
+        is_private: isPrivate,
+      }
       const { data: outing, error: outingError } = await supabase
         .from('outings')
-        .insert({
-          owner_id: user.id,
-          venue_id: selectedVenue,
-          photo_url: photo,
-          is_private: isPrivate,
-        })
+        .insert(outingPayload)
         .select()
-        .single()
+        .maybeSingle()
 
       if (outingError) throw outingError
 
       // Add bottles to outing
       for (const bottle of detectedBottles) {
-        await supabase.from('outing_bottles').insert({
+        const outingBottlePayload: Database['public']['Tables']['outing_bottles']['Insert'] = {
           outing_id: outing.id,
           bottle_id: bottle.id,
           quantity: bottle.quantity,
-        })
+        }
+        await supabase.from('outing_bottles').insert(outingBottlePayload)
       }
 
       // Close outing to trigger gamification

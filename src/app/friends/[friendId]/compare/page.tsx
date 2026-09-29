@@ -32,8 +32,8 @@ export default function FriendComparePage() {
     }
 
     const [myProfileData, friendProfileData, myCardsData, friendCardsData, myOutingsData, friendOutingsData] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
-      supabase.from('profiles').select('*').eq('id', friendId).single(),
+      supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+      supabase.from('profiles').select('*').eq('id', friendId).maybeSingle(),
       supabase.from('cards').select('*, bottles(*)').eq('user_id', user.id),
       supabase.from('cards').select('*, bottles(*)').eq('user_id', friendId),
       supabase.from('outings').select('*, venues(*)').eq('owner_id', user.id),

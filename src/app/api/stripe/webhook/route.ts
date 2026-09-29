@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe/client'
 import { createServiceClient } from '@/lib/supabase/server'
+import { Database } from '@/types/database'
 
 export async function POST(request: Request) {
   try {
@@ -37,16 +38,17 @@ export async function POST(request: Request) {
           const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
 
           // Create or update subscription
+          const upsertPayload: Database['public']['Tables']['subscriptions']['Insert'] = {
+            user_id: userId,
+            stripe_customer_id: session.customer as string,
+            stripe_subscription_id: session.subscription as string,
+            status: 'active',
+            plan: 'premium_monthly',
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          }
           const { error } = await serviceClient
             .from('subscriptions')
-            .upsert({
-              user_id: userId,
-              stripe_customer_id: session.customer,
-              stripe_subscription_id: session.subscription,
-              status: 'active',
-              plan: 'premium_monthly',
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-            })
+            .upsert(upsertPayload)
 
           if (error) {
             console.error('Subscription creation error:', error)
@@ -60,12 +62,13 @@ export async function POST(request: Request) {
         const userId = subscription.metadata?.userId
 
         if (userId) {
+          const updatePayload: Database['public']['Tables']['subscriptions']['Update'] = {
+            status: subscription.status as any,
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          }
           const { error } = await serviceClient
             .from('subscriptions')
-            .update({
-              status: subscription.status,
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-            })
+            .update(updatePayload)
             .eq('stripe_subscription_id', subscription.id)
 
           if (error) {
@@ -78,9 +81,12 @@ export async function POST(request: Request) {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as any
 
+        const updatePayload: Database['public']['Tables']['subscriptions']['Update'] = {
+          status: 'canceled',
+        }
         const { error } = await serviceClient
           .from('subscriptions')
-          .update({ status: 'canceled' })
+          .update(updatePayload)
           .eq('stripe_subscription_id', subscription.id)
 
         if (error) {
@@ -94,9 +100,12 @@ export async function POST(request: Request) {
         const subscriptionId = invoice.subscription
 
         // Update subscription status to active
+        const updatePayload: Database['public']['Tables']['subscriptions']['Update'] = {
+          status: 'active',
+        }
         const { error } = await serviceClient
           .from('subscriptions')
-          .update({ status: 'active' })
+          .update(updatePayload)
           .eq('stripe_subscription_id', subscriptionId)
 
         if (error) {
@@ -110,9 +119,12 @@ export async function POST(request: Request) {
         const subscriptionId = invoice.subscription
 
         // Update subscription status to past_due
+        const updatePayload: Database['public']['Tables']['subscriptions']['Update'] = {
+          status: 'past_due',
+        }
         const { error } = await serviceClient
           .from('subscriptions')
-          .update({ status: 'past_due' })
+          .update(updatePayload)
           .eq('stripe_subscription_id', subscriptionId)
 
         if (error) {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { Database } from '@/types/database'
 
 interface Venue {
   id: string
@@ -143,13 +144,14 @@ function CreateVenueModal({ onClose, onSuccess }: { onClose: () => void, onSucce
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Non connecté')
 
-      const { error } = await supabase.from('venues').insert({
+      const insertPayload: Database['public']['Tables']['venues']['Insert'] = {
         name,
         city,
         country,
         region,
         created_by: user.id,
-      })
+      }
+      const { error } = await supabase.from('venues').insert(insertPayload)
 
       if (error) throw error
 

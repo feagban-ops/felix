@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useParams, useRouter } from 'next/navigation'
 import { formatCurrency } from '@/lib/utils'
+import { Database } from '@/types/database'
 
 interface VenueBottlePrice {
   id: string
@@ -36,7 +37,7 @@ export default function VenueDetailPage() {
   }, [id])
 
   const loadVenue = async () => {
-    const { data } = await supabase.from('venues').select('*').eq('id', id).single()
+    const { data } = await supabase.from('venues').select('*').eq('id', id).maybeSingle()
     setVenue(data)
   }
 
@@ -201,13 +202,14 @@ function AddPriceModal({ venueId, onClose, onSuccess }: { venueId: string, onClo
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Non connecté')
 
-      const { error } = await supabase.from('venue_bottle_prices').insert({
+      const insertPayload: Database['public']['Tables']['venue_bottle_prices']['Insert'] = {
         venue_id: venueId,
         bottle_id: bottleId,
         price: parseFloat(price),
         currency,
         submitted_by: user.id,
-      })
+      }
+      const { error } = await supabase.from('venue_bottle_prices').insert(insertPayload)
 
       if (error) throw error
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { Database } from '@/types/database'
 
 const moderationActionSchema = z.object({
   price_id: z.string().uuid(),
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
       .from('profiles')
       .select('is_admin')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     const profileWithAdmin = profile as { is_admin: boolean } | null
 
@@ -38,9 +39,12 @@ export async function POST(request: Request) {
 
     const status = action === 'approve' ? 'approved' : 'rejected'
 
+    const updatePayload: Database['public']['Tables']['venue_bottle_prices']['Update'] = {
+      status,
+    }
     const { error } = await serviceClient
       .from('venue_bottle_prices')
-      .update({ status })
+      .update(updatePayload)
       .eq('id', price_id)
 
     if (error) throw error

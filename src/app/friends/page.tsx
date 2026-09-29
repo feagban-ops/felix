@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { Database } from '@/types/database'
 
 interface Friend {
   id: string
@@ -66,9 +67,12 @@ export default function FriendsPage() {
 
   const handleAcceptRequest = async (friendshipId: string) => {
     try {
+      const updatePayload: Database['public']['Tables']['friendships']['Update'] = {
+        status: 'accepted',
+      }
       const { error } = await supabase
         .from('friendships')
-        .update({ status: 'accepted' })
+        .update(updatePayload)
         .eq('id', friendshipId)
 
       if (error) throw error
@@ -285,11 +289,12 @@ function FriendSearchModal({ onClose, onSuccess }: { onClose: () => void, onSucc
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Non connecté')
 
-      const { error } = await supabase.from('friendships').insert({
+      const insertPayload: Database['public']['Tables']['friendships']['Insert'] = {
         user_id: user.id,
         friend_id: friendId,
         status: 'pending',
-      })
+      }
+      const { error } = await supabase.from('friendships').insert(insertPayload)
 
       if (error) throw error
 

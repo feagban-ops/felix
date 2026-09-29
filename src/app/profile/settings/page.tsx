@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { Database } from '@/types/database'
 
 export default function ProfileSettingsPage() {
   const [username, setUsername] = useState('')
@@ -27,7 +28,7 @@ export default function ProfileSettingsPage() {
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (profile) {
       setUsername(profile.username || '')
@@ -44,12 +45,13 @@ export default function ProfileSettingsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Non connecté')
 
+      const updatePayload: Database['public']['Tables']['profiles']['Update'] = {
+        username,
+        is_private: isPrivate,
+      }
       const { error } = await supabase
         .from('profiles')
-        .update({
-          username,
-          is_private: isPrivate,
-        })
+        .update(updatePayload)
         .eq('id', user.id)
 
       if (error) throw error

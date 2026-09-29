@@ -69,7 +69,7 @@ export default function ModerationPage() {
       .from('profiles')
       .select('is_admin')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     const profileWithAdmin = profile as { is_admin: boolean } | null
 

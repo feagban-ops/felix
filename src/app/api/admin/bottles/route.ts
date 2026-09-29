@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { Database } from '@/types/database'
 
 const bottleModerationSchema = z.object({
   bottle_id: z.string().uuid(),
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
       .from('profiles')
       .select('is_admin')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     const profileWithAdmin = profile as { is_admin: boolean } | null
 
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
     const serviceClient = createServiceClient()
 
     if (action === 'approve') {
-      const updateData: any = { status: 'approved' }
+      const updateData: Database['public']['Tables']['bottles']['Update'] = { status: 'approved' }
       if (brand) updateData.brand = brand
       if (name) updateData.name = name
       if (rarity_tier) updateData.rarity_tier = rarity_tier
