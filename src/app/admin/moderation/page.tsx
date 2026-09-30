@@ -25,7 +25,7 @@ interface PendingPrice {
   }
   profiles: {
     id: string
-    username: string
+    username: string | null
   } | null
 }
 
@@ -40,7 +40,7 @@ interface PendingBottle {
   created_at: string
   profiles: {
     id: string
-    username: string
+    username: string | null
   } | null
 }
 
