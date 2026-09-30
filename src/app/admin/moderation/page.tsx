@@ -388,7 +388,7 @@ function BottleModerationCard({
               type="number"
               min="1"
               max="100"
-              value={correctedXp}
+              value={correctedXp ?? ''}
               onChange={(e) => setCorrectedXp(parseInt(e.target.value))}
               className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
             />
