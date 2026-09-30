@@ -77,7 +77,7 @@ export default function CollectionPage() {
           </div>
           <div className="bg-gray-800/50 backdrop-blur rounded-xl p-4 border border-gray-700 text-center">
             <p className="text-3xl font-bold text-purple-400">
-              {cards.reduce((sum, c) => sum + c.quantity, 0)}
+              {cards.reduce((sum, c) => sum + (c.quantity ?? 0), 0)}
             </p>
             <p className="text-sm text-gray-400">Total cartes</p>
           </div>
@@ -180,9 +180,9 @@ function CardItem({ card }: { card: Card }) {
         
         <div className="mt-auto flex items-center gap-2">
           <span className="bg-black/30 px-2 py-1 rounded text-xs">
-            x{card.quantity}
+            x{card.quantity ?? 0}
           </span>
-          {card.quantity > 1 && (
+          {(card.quantity ?? 0) > 1 && (
             <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded">
               +
             </span>
@@ -190,7 +190,7 @@ function CardItem({ card }: { card: Card }) {
         </div>
       </div>
       
-      {card.quantity === 1 && (
+      {(card.quantity ?? 0) === 1 && (
         <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
           ✓
         </div>
