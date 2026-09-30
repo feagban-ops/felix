@@ -7,7 +7,7 @@ import { formatCurrency, getXPProgress } from '@/lib/utils'
 import { getRarityColor, getRarityLabel } from '@/lib/gamification'
 
 export default function FriendComparePage() {
-  const { friendId } = useParams()
+  const { friendId } = useParams() as { friendId: string }
   const router = useRouter()
   const [myProfile, setMyProfile] = useState<any>(null)
   const [friendProfile, setFriendProfile] = useState<any>(null)
