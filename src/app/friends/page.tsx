@@ -5,21 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Database } from '@/types/database'
 
-interface Friend {
-  id: string
-  username: string
-  avatar_url: string | null
-  xp: number
-  level: number
-}
-
-interface Friendship {
-  id: string
-  user_id: string
-  friend_id: string
-  status: 'pending' | 'accepted'
-  created_at: string
-  friend: Friend
+type Friendship = Database['public']['Tables']['friendships']['Row'] & {
+  friend: Database['public']['Tables']['profiles']['Row']
 }
 
 export default function FriendsPage() {
@@ -155,8 +142,8 @@ export default function FriendsPage() {
                       {request.friend.username?.[0]?.toUpperCase() || '?'}
                     </div>
                     <div>
-                      <p className="text-white font-medium">{request.friend.username}</p>
-                      <p className="text-sm text-gray-400">Niveau {request.friend.level}</p>
+                      <p className="text-white font-medium">{request.friend.username || 'Utilisateur'}</p>
+                      <p className="text-sm text-gray-400">Niveau {request.friend.level ?? 1}</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -204,8 +191,8 @@ export default function FriendsPage() {
                         {friend.username?.[0]?.toUpperCase() || '?'}
                       </div>
                       <div>
-                        <p className="text-white font-medium">{friend.username}</p>
-                        <p className="text-sm text-gray-400">Niveau {friend.level} • {friend.xp} XP</p>
+                        <p className="text-white font-medium">{friend.username || 'Utilisateur'}</p>
+                        <p className="text-sm text-gray-400">Niveau {friend.level ?? 1} • {friend.xp ?? 0} XP</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -346,8 +333,8 @@ function FriendSearchModal({ onClose, onSuccess }: { onClose: () => void, onSucc
                       {profile.username?.[0]?.toUpperCase() || '?'}
                     </div>
                     <div>
-                      <p className="text-white font-medium">{profile.username}</p>
-                      <p className="text-sm text-gray-400">Niveau {profile.level}</p>
+                      <p className="text-white font-medium">{profile.username || 'Utilisateur'}</p>
+                      <p className="text-sm text-gray-400">Niveau {profile.level ?? 1}</p>
                     </div>
                   </div>
                   <button
