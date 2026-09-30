@@ -373,7 +373,7 @@ function BottleModerationCard({
             <label className="block text-sm font-medium text-gray-300 mb-2">Rareté</label>
             <select
               value={correctedRarity}
-              onChange={(e) => setCorrectedRarity(e.target.value)}
+              onChange={(e) => setCorrectedRarity(e.target.value as 'commune' | 'rare' | 'epique' | 'legendaire')}
               className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
             >
               <option value="commune">Commune</option>
