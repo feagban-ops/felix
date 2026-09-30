@@ -4,44 +4,16 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { formatCurrency } from '@/lib/utils'
+import { Database } from '@/types/database'
 
-interface PendingPrice {
-  id: string
-  venue_id: string
-  bottle_id: string
-  price: number
-  currency: string | null
-  submitted_by: string | null
-  updated_at: string
-  venues: {
-    id: string
-    name: string
-    city: string
-  }
-  bottles: {
-    id: string
-    brand: string
-    name: string
-  }
-  profiles: {
-    id: string
-    username: string | null
-  } | null
+type PendingPrice = Database['public']['Tables']['venue_bottle_prices']['Row'] & {
+  venues: { id: string; name: string; city: string }
+  bottles: { id: string; brand: string; name: string }
+  profiles: { id: string; username: string | null } | null
 }
 
-interface PendingBottle {
-  id: string
-  brand: string
-  name: string
-  rarity_tier: string
-  base_xp: number
-  submitted_by: string | null
-  suggested_by_ai: boolean
-  created_at: string
-  profiles: {
-    id: string
-    username: string | null
-  } | null
+type PendingBottle = Database['public']['Tables']['bottles']['Row'] & {
+  profiles: { id: string; username: string | null } | null
 }
 
 export default function ModerationPage() {
