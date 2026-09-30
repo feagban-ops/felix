@@ -4,19 +4,10 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { getRarityColor, getRarityLabel } from '@/lib/gamification'
+import { Database } from '@/types/database'
 
-interface Card {
-  id: string
-  bottle_id: string
-  quantity: number
-  first_obtained_at: string
-  bottles: {
-    id: string
-    brand: string
-    name: string
-    rarity_tier: string
-    image_url: string | null
-  }
+type Card = Database['public']['Tables']['cards']['Row'] & {
+  bottles: Database['public']['Tables']['bottles']['Row']
 }
 
 export default function CollectionPage() {
