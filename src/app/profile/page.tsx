@@ -21,7 +21,7 @@ export default async function ProfilePage() {
     redirect('/signup')
   }
 
-  const xpProgress = getXPProgress(profile.xp)
+  const xpProgress = getXPProgress(profile.xp ?? 0)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-900/20 to-black p-4">
@@ -45,14 +45,14 @@ export default async function ProfilePage() {
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-white">{profile.username || 'Anonyme'}</h2>
-              <p className="text-gray-400">Niveau {profile.level}</p>
+              <p className="text-gray-400">Niveau {profile.level ?? 1}</p>
             </div>
           </div>
 
           {/* XP Progress */}
           <div className="mt-6">
             <div className="flex justify-between text-sm text-gray-400 mb-2">
-              <span>XP: {profile.xp}</span>
+              <span>XP: {profile.xp ?? 0}</span>
               <span>Niveau suivant: {xpProgress.target} XP</span>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2">
