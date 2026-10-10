@@ -117,6 +117,10 @@ export default function ScanPage() {
 
       if (outingError) throw outingError
 
+    if (!outing) {
+      throw new Error('Impossible de créer la table, réessaie.')
+    }
+
       // Add bottles to outing
       for (const bottle of detectedBottles) {
         const outingBottlePayload: Database['public']['Tables']['outing_bottles']['Insert'] = {
