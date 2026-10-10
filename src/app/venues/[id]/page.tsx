@@ -6,22 +6,12 @@ import { useParams, useRouter } from 'next/navigation'
 import { formatCurrency } from '@/lib/utils'
 import { Database } from '@/types/database'
 
-interface VenueBottlePrice {
-  id: string
-  bottle_id: string
-  price: number
-  currency: string
-  status: 'pending' | 'approved' | 'rejected'
-  bottles: {
-    id: string
-    brand: string
-    name: string
-    rarity_tier: string
-  }
+type VenueBottlePrice = Database['public']['Tables']['venue_bottle_prices']['Row'] & {
+  bottles: Database['public']['Tables']['bottles']['Row']
 }
 
 export default function VenueDetailPage() {
-  const { id } = useParams()
+  const { id } = useParams() as { id: string }
   const router = useRouter()
   const [venue, setVenue] = useState<any>(null)
   const [prices, setPrices] = useState<VenueBottlePrice[]>([])
@@ -120,7 +110,7 @@ export default function VenueDetailPage() {
                     <p className="text-sm text-gray-400">{price.bottles.rarity_tier}</p>
                   </div>
                   <p className="text-lg font-semibold text-purple-400">
-                    {formatCurrency(price.price, price.currency)}
+                    {formatCurrency(price.price, price.currency || 'EUR')}
                   </p>
                 </div>
               ))}
@@ -143,7 +133,7 @@ export default function VenueDetailPage() {
                     <p className="text-sm text-yellow-400">En attente</p>
                   </div>
                   <p className="text-lg font-semibold text-gray-400">
-                    {formatCurrency(price.price, price.currency)}
+                    {formatCurrency(price.price, price.currency || 'EUR')}
                   </p>
                 </div>
               ))}
