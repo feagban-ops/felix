@@ -40,12 +40,12 @@ export default function LeaderboardsPage() {
       return
     }
 
-    let viewName = ''
-    if (period === 'monthly') viewName = 'leaderboard_spending_monthly'
-    else if (period === 'yearly') viewName = 'leaderboard_spending_yearly'
-    else viewName = 'leaderboard_biggest_outing'
+    const viewName: 'leaderboard_spending_monthly' | 'leaderboard_spending_yearly' | 'leaderboard_biggest_outing' =
+      period === 'monthly' ? 'leaderboard_spending_monthly' :
+      period === 'yearly' ? 'leaderboard_spending_yearly' :
+      'leaderboard_biggest_outing'
 
-    let query = supabase.from(viewName).select('*')
+    let query: any = supabase.from(viewName).select('*')
 
     // Apply region filter
     if (region !== 'all') {
@@ -75,7 +75,7 @@ export default function LeaderboardsPage() {
       setLeaderboard([])
     } else {
       // Add rank
-      const rankedData = (data || []).map((entry, index) => ({
+      const rankedData: LeaderboardEntry[] = ((data || []) as LeaderboardEntry[]).map((entry, index) => ({
         ...entry,
         rank: index + 1,
       }))
