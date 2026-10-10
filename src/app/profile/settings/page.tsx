@@ -32,7 +32,7 @@ export default function ProfileSettingsPage() {
 
     if (profile) {
       setUsername(profile.username || '')
-      setIsPrivate(profile.is_private)
+      setIsPrivate(profile.is_private ?? false)
     }
   }
 
