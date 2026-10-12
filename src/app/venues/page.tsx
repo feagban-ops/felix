@@ -5,14 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Database } from '@/types/database'
 
-interface Venue {
-  id: string
-  name: string
-  city: string
-  country: string
-  region: string
-  verified: boolean
-}
+type Venue = Database['public']['Tables']['venues']['Row']
 
 export default function VenuesPage() {
   const [venues, setVenues] = useState<Venue[]>([])
