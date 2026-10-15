@@ -28,7 +28,7 @@ export const createServerClient = (): SupabaseClient<Database> => {
         },
       },
     }
-  )
+  ) as unknown as SupabaseClient<Database>
 }
 
 export const createServiceClient = () => {
