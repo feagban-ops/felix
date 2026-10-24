@@ -13,14 +13,34 @@ interface DetectedBottle {
   quantity: number
 }
 
+async function compressImage(file: File): Promise<File> {
+  try {
+    const bitmap = await createImageBitmap(file)
+    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.round(bitmap.width * scale)
+    canvas.height = Math.round(bitmap.height * scale)
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return file
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+    const blob: Blob | null = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.82))
+    if (!blob) return file
+    return new File([blob], 'photo.jpg', { type: 'image/jpeg' })
+  } catch {
+    return file
+  }
+}
+
 export default function ScanPage() {
   const [photo, setPhoto] = useState<string | null>(null)
+  const [photoPath, setPhotoPath] = useState<string | null>(null)
   const [selectedVenue, setSelectedVenue] = useState<string>('')
   const [isPrivate, setIsPrivate] = useState(false)
   const [detectedBottles, setDetectedBottles] = useState<DetectedBottle[]>([])
   const [analyzing, setAnalyzing] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [step, setStep] = useState<'photo' | 'venue' | 'analyze' | 'correct'>('photo')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -36,7 +56,8 @@ export default function ScanPage() {
     try {
       // Upload photo using secure API endpoint
       const formData = new FormData()
-      formData.append('file', file)
+      const prepared = await compressImage(file)
+      formData.append('file', prepared)
 
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -50,6 +71,7 @@ export default function ScanPage() {
 
       const data = await response.json()
       setPhoto(data.url)
+      setPhotoPath(data.path)
       setStep('venue')
     } catch (error: any) {
       setError(error.message)
@@ -59,7 +81,7 @@ export default function ScanPage() {
   }
 
   const handleAnalyze = async () => {
-    if (!photo || !selectedVenue) {
+    if (!photoPath || !selectedVenue) {
       setError('Veuillez sélectionner une photo et un établissement')
       return
     }
@@ -71,7 +93,7 @@ export default function ScanPage() {
       const response = await fetch('/api/scan/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ photoUrl: photo, venueId: selectedVenue }),
+        body: JSON.stringify({ photoPath, venueId: selectedVenue }),
       })
 
       if (!response.ok) {
@@ -80,7 +102,9 @@ export default function ScanPage() {
       }
 
       const data = await response.json()
-      setDetectedBottles(data.bottles || [])
+      setDetectedBottles(data.matched_bottles || [])
+      const proposedCount = (data.proposed_bottles || []).length
+      setNotice(proposedCount > 0 ? `${proposedCount} bouteille(s) inconnue(s) envoyée(s) à la modération : elles ne comptent pas encore.` : '')
       setStep('correct')
     } catch (error: any) {
       setError(error.message)
@@ -90,7 +114,8 @@ export default function ScanPage() {
   }
 
   const handleCreateOuting = async () => {
-    if (!photo || !selectedVenue || detectedBottles.length === 0) {
+    const validBottles = detectedBottles.filter(b => b.id)
+    if (!photoPath || !selectedVenue || validBottles.length === 0) {
       setError('Données incomplètes')
       return
     }
@@ -102,11 +127,10 @@ export default function ScanPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Non connecté')
 
-      // Create outing
       const outingPayload: Database['public']['Tables']['outings']['Insert'] = {
         owner_id: user.id,
         venue_id: selectedVenue,
-        photo_url: photo,
+        photo_url: photoPath,
         is_private: isPrivate,
       }
       const { data: outing, error: outingError } = await supabase
@@ -116,29 +140,29 @@ export default function ScanPage() {
         .maybeSingle()
 
       if (outingError) throw outingError
-
-    if (!outing) {
-      throw new Error('Impossible de créer la table, réessaie.')
-    }
-
-      // Add bottles to outing
-      for (const bottle of detectedBottles) {
-        const outingBottlePayload: Database['public']['Tables']['outing_bottles']['Insert'] = {
-          outing_id: outing.id,
-          bottle_id: bottle.id,
-          quantity: bottle.quantity,
-        }
-        await supabase.from('outing_bottles').insert(outingBottlePayload)
+      if (!outing) {
+        throw new Error('Impossible de créer la table, réessaie.')
       }
 
-      // Close outing to trigger gamification
-      await fetch('/api/outings/close', {
+      const outingBottlePayloads: Database['public']['Tables']['outing_bottles']['Insert'][] = validBottles.map(bottle => ({
+        outing_id: outing.id,
+        bottle_id: bottle.id,
+        quantity: bottle.quantity,
+      }))
+      const { error: bottlesError } = await supabase.from('outing_bottles').insert(outingBottlePayloads)
+      if (bottlesError) throw bottlesError
+
+      const closeResponse = await fetch('/api/outings/close', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ outingId: outing.id }),
       })
+      if (!closeResponse.ok) {
+        const closeData = await closeResponse.json()
+        throw new Error(closeData.error || 'Erreur lors de la validation de la table')
+      }
 
-      router.push(`/outings/${outing.id}`)
+      router.push('/collection')
     } catch (error: any) {
       setError(error.message)
     } finally {
@@ -202,7 +226,7 @@ export default function ScanPage() {
                 disabled={uploading}
                 className="w-full py-4 px-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50"
               >
-                {uploading ? 'Chargement...' : '📷 Prendre une photo'}
+                {uploading ? 'Chargement...' : '📷 Prendre ou importer une photo'}
               </button>
             </div>
           </div>
@@ -259,6 +283,12 @@ export default function ScanPage() {
               <p className="text-gray-400 mb-4">
                 Vérifiez et corrigez les bouteilles détectées avant de valider
               </p>
+
+              {notice && (
+                <div className="bg-yellow-500/10 border border-yellow-500 text-yellow-400 px-4 py-3 rounded mb-4">
+                  {notice}
+                </div>
+              )}
 
               <BottleCorrection
                 bottles={detectedBottles}
